@@ -1,0 +1,177 @@
+// Prisma schema for SmartRides
+// Database: Postgres
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                String   @id @default(uuid())
+  name              String
+  email             String   @unique
+  passwordHash      String
+  university        String
+  avatar            String?
+  rating            Float    @default(5.0)
+  verified          Boolean  @default(false)
+  verificationStatus VerificationStatus @default(none)
+  stripeAccountId   String?
+  role              UserRole @default(student)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  rideRequests      RideRequest[] @relation("UserRequests")
+  rideOffers        RideOffer[]   @relation("UserOffers")
+  bookings          Booking[]
+  rides             Ride[]        @relation("UserRides")
+  verifications     Verification[]
+  complianceLogs    ComplianceLog[]
+}
+
+enum UserRole {
+  student
+  driver
+  admin
+}
+
+enum VerificationStatus {
+  pending
+  approved
+  rejected
+  none
+}
+
+model RideRequest {
+  id          String   @id @default(uuid())
+  from        String
+  to          String
+  date        DateTime
+  passengers  Int
+  bags        Int
+  notes       String?
+  priceRange  String?
+  status      RequestStatus @default(open)
+  createdAt   DateTime @default(now())
+  user        User     @relation("UserRequests", fields: [userId], references: [id])
+  userId      String
+  offers      RideOffer[]
+}
+
+enum RequestStatus {
+  open
+  matched
+  expired
+  cancelled
+}
+
+model RideOffer {
+  id          String   @id @default(uuid())
+  price       Float
+  status      OfferStatus @default(pending)
+  createdAt   DateTime @default(now())
+  driver      User     @relation("UserOffers", fields: [driverId], references: [id])
+  driverId    String
+  request     RideRequest @relation(fields: [requestId], references: [id])
+  requestId   String
+  booking     Booking?
+}
+
+enum OfferStatus {
+  pending
+  accepted
+  declined
+  paid
+}
+
+model Booking {
+  id          String   @id @default(uuid())
+  ride        Ride?    @relation(fields: [rideId], references: [id])
+  rideId      String?
+  offer       RideOffer? @relation(fields: [offerId], references: [id])
+  offerId     String? @unique
+  user        User     @relation(fields: [userId], references: [id])
+  userId      String
+  status      BookingStatus @default(pending)
+  createdAt   DateTime @default(now())
+  passengers  Int
+  totalPrice  Float
+  payment     Payment?
+}
+
+enum BookingStatus {
+  pending
+  confirmed
+  cancelled
+  completed
+}
+
+model Ride {
+  id          String   @id @default(uuid())
+  type        RideType
+  driver      User     @relation("UserRides", fields: [driverId], references: [id])
+  driverId    String
+  passengers  Int
+  origin      String
+  destination String
+  departureTime DateTime
+  arrivalTime DateTime
+  price       Float
+  availableSeats Int
+  status      RideStatus @default(scheduled)
+  distance    String
+  duration    String
+  bookings    Booking[]
+  createdAt   DateTime @default(now())
+}
+
+enum RideType {
+  carpool
+  chauffeur
+}
+
+enum RideStatus {
+  scheduled
+  in_progress
+  completed
+  cancelled
+}
+
+model Verification {
+  id          String   @id @default(uuid())
+  user        User     @relation(fields: [userId], references: [id])
+  userId      String
+  imageUrl    String
+  status      VerificationStatus @default(pending)
+  reviewedBy  String?
+  reviewedAt  DateTime?
+  createdAt   DateTime @default(now())
+}
+
+model Payment {
+  id          String   @id @default(uuid())
+  booking     Booking  @relation(fields: [bookingId], references: [id])
+  bookingId   String @unique
+  stripePaymentId String
+  amount      Float
+  status      PaymentStatus @default(pending)
+  createdAt   DateTime @default(now())
+}
+
+enum PaymentStatus {
+  pending
+  succeeded
+  failed
+  refunded
+}
+
+model ComplianceLog {
+  id        String   @id @default(uuid())
+  userId    String?
+  action    String
+  details   String?
+  timestamp DateTime @default(now())
+} 

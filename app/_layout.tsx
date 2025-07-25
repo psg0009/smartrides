@@ -7,6 +7,8 @@ import { StatusBar } from "expo-status-bar";
 import { colors } from "@/constants/colors";
 import { trpc, trpcClient } from "@/lib/trpc";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import Toast from 'react-native-toast-message';
+import { StripeProvider } from '@stripe/stripe-react-native';
 
 export const unstable_settings = {
   initialRouteName: "(tabs)",
@@ -41,11 +43,13 @@ export default function RootLayout() {
   }
 
   return (
-    <trpc.Provider client={trpcClient} queryClient={queryClient}>
-      <QueryClientProvider client={queryClient}>
-        <RootLayoutNav />
-      </QueryClientProvider>
-    </trpc.Provider>
+    <StripeProvider publishableKey={process.env.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY || ''}>
+      <trpc.Provider client={trpcClient} queryClient={queryClient}>
+        <QueryClientProvider client={queryClient}>
+          <RootLayoutNav />
+        </QueryClientProvider>
+      </trpc.Provider>
+    </StripeProvider>
   );
 }
 
@@ -53,6 +57,7 @@ function RootLayoutNav() {
   return (
     <>
       <StatusBar style="dark" />
+      <Toast />
       <Stack
         screenOptions={{
           headerStyle: {

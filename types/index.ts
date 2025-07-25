@@ -6,6 +6,7 @@ export type User = {
   avatar: string;
   rating: number;
   verified: boolean;
+  verificationStatus?: 'pending' | 'approved' | 'rejected' | 'none';
 };
 
 export type RideType = 'carpool' | 'chauffeur';
@@ -26,6 +27,9 @@ export type Ride = {
   status: RideStatus;
   distance: string;
   duration: string;
+  /** Optional coordinates for map support */
+  originCoords?: { latitude: number; longitude: number };
+  destinationCoords?: { latitude: number; longitude: number };
 };
 
 export type Booking = {

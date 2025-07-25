@@ -2,10 +2,11 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { User } from '@/types';
-import { currentUser } from '@/mocks/data';
+import { trpcClient } from '@/lib/trpc';
 
 interface AuthState {
   user: User | null;
+  jwt: string | null;
   isAuthenticated: boolean;
   isLoading: boolean;
   login: (email: string, password: string) => Promise<void>;
@@ -17,42 +18,36 @@ export const useAuthStore = create<AuthState>()(
   persist(
     (set) => ({
       user: null,
+      jwt: null,
       isAuthenticated: false,
       isLoading: false,
       login: async (email, password) => {
         set({ isLoading: true });
-        
-        // Simulate API call
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        
-        // In a real app, you would validate credentials with a backend
-        if (email && password) {
-          set({ user: currentUser, isAuthenticated: true, isLoading: false });
-        } else {
+        try {
+          const res = await trpcClient.auth.login.mutate({ email, password });
+          set({ user: { ...res.user, avatar: res.user.avatar || '' }, jwt: res.token, isAuthenticated: true, isLoading: false });
+        } catch (err) {
           set({ isLoading: false });
-          throw new Error('Invalid credentials');
+          throw err;
         }
       },
       signup: async (userData, password) => {
         set({ isLoading: true });
-        
-        // Simulate API call
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        
-        // In a real app, you would send user data to a backend
-        if (userData.email && password) {
-          set({ 
-            user: { ...currentUser, ...userData } as User, 
-            isAuthenticated: true, 
-            isLoading: false 
+        try {
+          const res = await trpcClient.auth.signup.mutate({
+            name: userData.name!,
+            email: userData.email!,
+            password,
+            university: userData.university!,
           });
-        } else {
+          set({ user: { ...res.user, avatar: res.user.avatar || '' }, jwt: res.token, isAuthenticated: true, isLoading: false });
+        } catch (err) {
           set({ isLoading: false });
-          throw new Error('Invalid user data');
+          throw err;
         }
       },
       logout: () => {
-        set({ user: null, isAuthenticated: false });
+        set({ user: null, jwt: null, isAuthenticated: false });
       },
     }),
     {

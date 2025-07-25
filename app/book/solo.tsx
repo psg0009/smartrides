@@ -20,17 +20,22 @@ import {
 import { colors } from '@/constants/colors';
 import { useRidesStore } from '@/store/rides-store';
 import { useBookingsStore } from '@/store/bookings-store';
+import { useAuthStore } from '@/store/auth-store';
 import { trpcClient } from '@/lib/trpc';
 import Button from '@/components/Button';
+import { useStripe } from '@stripe/stripe-react-native';
+import Toast from 'react-native-toast-message';
 
 export default function SoloBookingScreen() {
   const { rideId } = useLocalSearchParams<{ rideId: string }>();
   const router = useRouter();
   const { getRideById } = useRidesStore();
   const { createBooking, isLoading } = useBookingsStore();
+  const { user } = useAuthStore();
   
   const [ride, setRide] = useState(getRideById(rideId));
   const [paymentMethod, setPaymentMethod] = useState('card');
+  const { confirmPayment } = useStripe();
   
   useEffect(() => {
     if (!ride) {
@@ -54,41 +59,50 @@ export default function SoloBookingScreen() {
     minute: '2-digit',
   });
   
-  const totalPrice = ride.price;
+  // Service fee: 5% of driver fare
+  const serviceFee = Math.round(ride.price * 0.05 * 100) / 100;
+  const driverFare = ride.price;
+  const totalPrice = driverFare + serviceFee;
+  // TODO: Replace with real driver Stripe account ID from ride.driver
+  const driverStripeAccountId = (ride.driver && (ride.driver as any).stripeAccountId) || 'acct_test_123';
   
   const handleBookRide = async () => {
+    if (!user || user.verificationStatus !== 'approved') {
+      Toast.show({ type: 'error', text1: 'You must be a verified student to book a ride.' });
+      return;
+    }
     try {
-      console.log('Creating booking for ride:', ride.id);
       await createBooking(ride, 1);
-      console.log('Booking created successfully');
-      
-      console.log('Processing payment...');
+      // 1. Create payment intent on backend
       const paymentResult = await trpcClient.payments.process.mutate({
         bookingId: `booking-${Date.now()}`,
-        paymentMethod: paymentMethod as 'card' | 'university',
+        paymentMethod: 'card',
         amount: totalPrice,
-        cardDetails: paymentMethod === 'card' ? {
-          cardNumber: '4242424242424242',
-          expiryDate: '12/25',
-          cvv: '123',
-          cardholderName: 'Test User'
-        } : undefined,
-        universityAccount: paymentMethod === 'university' ? {
-          studentId: 'STU123456',
-          accountNumber: 'ACC789012'
-        } : undefined
+        driverFare,
+        serviceFee,
+        driverStripeAccountId,
       });
-      
-      console.log('Payment processed:', paymentResult);
-      
-      if (paymentResult.success) {
+      if (!paymentResult.success || !paymentResult.clientSecret) {
+        Toast.show({ type: 'error', text1: 'Payment failed', text2: paymentResult.message });
+        return;
+      }
+      // 2. Confirm payment with Stripe
+      const { error, paymentIntent } = await confirmPayment(paymentResult.clientSecret, {
+        paymentMethodType: 'Card',
+      });
+      if (error) {
+        Toast.show({ type: 'error', text1: 'Payment failed', text2: error.message });
+        return;
+      }
+      if (paymentIntent && paymentIntent.status === 'Succeeded') {
+        Toast.show({ type: 'success', text1: 'Payment successful!' });
         router.push('/book/confirmation');
       } else {
-        Alert.alert('Payment Failed', 'There was an issue processing your payment. Please try again.');
+        Toast.show({ type: 'error', text1: 'Payment not completed' });
       }
     } catch (error) {
       console.error('Booking/Payment error:', error);
-      Alert.alert('Error', 'Failed to book ride or process payment');
+      Toast.show({ type: 'error', text1: 'Error', text2: 'Failed to book ride or process payment' });
     }
   };
   
@@ -187,19 +201,19 @@ export default function SoloBookingScreen() {
         
         <View style={styles.card}>
           <Text style={styles.sectionTitle}>Price Details</Text>
-          
           <View style={styles.priceRow}>
-            <Text style={styles.priceLabel}>Base fare</Text>
-            <Text style={styles.priceValue}>${ride.price.toFixed(2)}</Text>
+            <Text style={styles.priceLabel}>Base fare (to driver)</Text>
+            <Text style={styles.priceValue}>${driverFare.toFixed(2)}</Text>
           </View>
-          
+          <View style={styles.priceRow}>
+            <Text style={styles.priceLabel}>SmartRides service fee</Text>
+            <Text style={styles.priceValue}>${serviceFee.toFixed(2)}</Text>
+          </View>
           <View style={styles.priceRow}>
             <Text style={styles.priceLabel}>Passengers</Text>
             <Text style={styles.priceValue}>x 1</Text>
           </View>
-          
           <View style={styles.divider} />
-          
           <View style={styles.totalRow}>
             <Text style={styles.totalLabel}>Total</Text>
             <Text style={styles.totalValue}>${totalPrice.toFixed(2)}</Text>

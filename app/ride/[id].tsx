@@ -7,7 +7,8 @@ import {
   Image, 
   TouchableOpacity,
   Alert,
-  Platform
+  Platform,
+  Dimensions
 } from 'react-native';
 import { useLocalSearchParams, useRouter, Stack } from 'expo-router';
 import { 
@@ -26,6 +27,7 @@ import { useRidesStore } from '@/store/rides-store';
 import { useAuthStore } from '@/store/auth-store';
 import Button from '@/components/Button';
 import { mockChatRooms } from '@/mocks/data';
+import MapView, { Marker } from 'react-native-maps';
 
 export default function RideDetailsScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -143,6 +145,8 @@ export default function RideDetailsScreen() {
     
     Alert.alert('Share', 'Share functionality would be implemented here');
   };
+
+  const { width } = Dimensions.get('window');
   
   return (
     <View style={styles.container}>
@@ -162,6 +166,37 @@ export default function RideDetailsScreen() {
       />
       
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+        {/* Route Map */}
+        <View style={{ height: Math.max(180, Math.min(300, width * 0.5)), borderRadius: 16, overflow: 'hidden', margin: width < 400 ? 8 : 16, marginBottom: 0 }}>
+          <MapView
+            style={{ flex: 1 }}
+            initialRegion={{
+              latitude: ride.originCoords?.latitude || 37.7749,
+              longitude: ride.originCoords?.longitude || -122.4194,
+              latitudeDelta: 0.1,
+              longitudeDelta: 0.1,
+            }}
+            scrollEnabled={false}
+            zoomEnabled={false}
+            pitchEnabled={false}
+            rotateEnabled={false}
+          >
+            <Marker
+              coordinate={ride.originCoords || { latitude: 37.7749, longitude: -122.4194 }}
+              title="Origin"
+              description={ride.origin}
+              pinColor={colors.primary}
+            />
+            <Marker
+              coordinate={ride.destinationCoords || { latitude: 37.7849, longitude: -122.4094 }}
+              title="Destination"
+              description={ride.destination}
+              pinColor={colors.secondary}
+            />
+          </MapView>
+        </View>
+        {/* End Route Map */}
+        
         <View style={styles.card}>
           <View style={styles.header}>
             <View style={[

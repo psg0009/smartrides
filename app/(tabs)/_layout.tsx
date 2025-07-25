@@ -1,23 +1,25 @@
 import React from "react";
 import { Tabs } from "expo-router";
-import { Platform } from "react-native";
+import { Platform, useColorScheme } from "react-native";
 import { Home, Search, Calendar, User, Plus } from "lucide-react-native";
 import { colors } from "@/constants/colors";
 
 export default function TabLayout() {
+  const scheme = useColorScheme();
+  const isDark = scheme === 'dark';
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: colors.primary,
-        tabBarInactiveTintColor: colors.gray[400],
+        tabBarActiveTintColor: isDark ? colors.secondary : colors.primary,
+        tabBarInactiveTintColor: isDark ? colors.gray[400] : colors.gray[400],
         tabBarStyle: {
-          backgroundColor: colors.background,
-          borderTopColor: colors.gray[200],
+          backgroundColor: isDark ? colors.gray[900] : colors.background,
+          borderTopColor: isDark ? colors.gray[800] : colors.gray[200],
           borderTopWidth: 1,
           height: Platform.OS === 'ios' ? 85 : 65,
           paddingBottom: Platform.OS === 'ios' ? 20 : 8,
           paddingTop: 8,
-          shadowColor: colors.gray[900],
+          shadowColor: isDark ? colors.gray[900] : colors.gray[900],
           shadowOffset: { width: 0, height: -2 },
           shadowOpacity: 0.05,
           shadowRadius: 8,
@@ -29,8 +31,8 @@ export default function TabLayout() {
           marginTop: 4,
         },
         headerStyle: {
-          backgroundColor: colors.background,
-          shadowColor: colors.gray[900],
+          backgroundColor: isDark ? colors.gray[900] : colors.background,
+          shadowColor: isDark ? colors.gray[900] : colors.gray[900],
           shadowOffset: { width: 0, height: 2 },
           shadowOpacity: 0.05,
           shadowRadius: 8,
@@ -39,7 +41,7 @@ export default function TabLayout() {
         headerTitleStyle: {
           fontWeight: '700',
           fontSize: 20,
-          color: colors.text,
+          color: isDark ? colors.background : colors.text,
         },
         headerShadowVisible: true,
       }}

@@ -8,6 +8,9 @@ import RideCard from '@/components/RideCard';
 import SearchBar from '@/components/SearchBar';
 import FilterChip from '@/components/FilterChip';
 import { RideCardSkeleton } from '@/components/SkeletonLoader';
+import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplete';
+import DateTimePicker from '@react-native-community/datetimepicker';
+import Toast from 'react-native-toast-message';
 
 export default function RidesScreen() {
   const { filteredRides, fetchRides, filterRides, isLoading } = useRidesStore();
@@ -16,14 +19,23 @@ export default function RidesScreen() {
   const [selectedType, setSelectedType] = useState<RideType | undefined>(undefined);
   const [showFilters, setShowFilters] = useState<boolean>(false);
   const [refreshing, setRefreshing] = useState<boolean>(false);
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [location, setLocation] = useState('');
   
   useEffect(() => {
-    fetchRides();
+    fetchRides().catch(() => {
+      Toast.show({
+        type: 'error',
+        text1: 'Failed to fetch rides',
+        text2: 'Please check your connection and try again.',
+      });
+    });
   }, [fetchRides]);
   
   useEffect(() => {
-    filterRides(selectedType, searchQuery, undefined, undefined);
-  }, [selectedType, searchQuery, filterRides]);
+    filterRides(selectedType, location, undefined, selectedDate ? selectedDate.toISOString() : undefined);
+  }, [selectedType, location, selectedDate, filterRides]);
   
   const onRefresh = async () => {
     setRefreshing(true);
@@ -60,7 +72,42 @@ export default function RidesScreen() {
             <SlidersHorizontal size={18} color={colors.primary} />
             <Text style={styles.filterTitle}>Filter Options</Text>
           </View>
-          
+          <Text style={styles.filterSubtitle}>Location</Text>
+          <GooglePlacesAutocomplete
+            placeholder="Enter location"
+            onPress={(data, details = null) => {
+              setLocation(data.description);
+            }}
+            query={{
+              // TODO: Replace with your real Google Places API key. For best practice, use process.env.EXPO_PUBLIC_GOOGLE_PLACES_API_KEY or similar.
+              key: process.env.EXPO_PUBLIC_GOOGLE_PLACES_API_KEY || '',
+              language: 'en',
+            }}
+            styles={{
+              textInput: { height: 40, borderColor: colors.gray[200], borderWidth: 1, borderRadius: 8, paddingHorizontal: 8 },
+              container: { flex: 0, marginBottom: 12 },
+            }}
+            fetchDetails={false}
+            enablePoweredByContainer={false}
+          />
+          <Text style={styles.filterSubtitle}>Date</Text>
+          <TouchableOpacity onPress={() => setShowDatePicker(true)} style={{ marginBottom: 12 }}>
+            <Text style={{ color: colors.primary, fontWeight: '600' }}>
+              {selectedDate ? selectedDate.toLocaleDateString() : 'Select date'}
+            </Text>
+          </TouchableOpacity>
+          {showDatePicker && (
+            <DateTimePicker
+              value={selectedDate || new Date()}
+              mode="date"
+              display="default"
+              onChange={(event, date) => {
+                setShowDatePicker(false);
+                if (date) setSelectedDate(date);
+              }}
+              minimumDate={new Date()}
+            />
+          )}
           <Text style={styles.filterSubtitle}>Ride Type</Text>
           <View style={styles.filterChips}>
             <FilterChip
@@ -114,17 +161,21 @@ export default function RidesScreen() {
         ) : (
           <View style={styles.emptyContainer}>
             <Calendar size={64} color={colors.gray[300]} />
-            <Text style={styles.emptyTitle}>No rides found</Text>
+            <Text style={styles.emptyTitle}>No rides match your search</Text>
             <Text style={styles.emptyDescription}>
-              {searchQuery || selectedType 
-                ? 'Try adjusting your search or filters'
-                : 'No rides are currently available'}
+              Try adjusting your search, filters, or date.
             </Text>
             <TouchableOpacity 
               style={styles.clearFiltersButton}
               onPress={() => {
                 setSearchQuery('');
                 setSelectedType(undefined);
+                setLocation('');
+                setSelectedDate(undefined);
+                Toast.show({
+                  type: 'info',
+                  text1: 'Filters cleared',
+                });
               }}
             >
               <Text style={styles.clearFiltersText}>Clear all filters</Text>

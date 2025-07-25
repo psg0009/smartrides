@@ -63,6 +63,8 @@ export const mockRides: Ride[] = [
     status: 'scheduled',
     distance: '35 miles',
     duration: '1h 30m',
+    originCoords: { latitude: 37.7749, longitude: -122.4194 }, // State University
+    destinationCoords: { latitude: 37.6213, longitude: -122.3790 }, // International Airport
   },
   {
     id: '2',
@@ -78,6 +80,8 @@ export const mockRides: Ride[] = [
     status: 'scheduled',
     distance: '28 miles',
     duration: '1h 15m',
+    originCoords: { latitude: 37.8715, longitude: -122.2730 }, // Tech Institute
+    destinationCoords: { latitude: 37.5107, longitude: -122.2951 }, // Regional Airport
   },
   {
     id: '3',
@@ -93,6 +97,8 @@ export const mockRides: Ride[] = [
     status: 'scheduled',
     distance: '40 miles',
     duration: '1h 30m',
+    originCoords: { latitude: 37.7289, longitude: -123.0322 }, // City College
+    destinationCoords: { latitude: 37.6213, longitude: -122.3790 }, // International Airport
   },
   {
     id: '4',
@@ -108,6 +114,8 @@ export const mockRides: Ride[] = [
     status: 'scheduled',
     distance: '35 miles',
     duration: '1h 15m',
+    originCoords: { latitude: 37.7749, longitude: -122.4194 }, // State University
+    destinationCoords: { latitude: 37.6213, longitude: -122.3790 }, // International Airport
   },
   {
     id: '5',
@@ -123,6 +131,8 @@ export const mockRides: Ride[] = [
     status: 'scheduled',
     distance: '28 miles',
     duration: '1h 30m',
+    originCoords: { latitude: 37.8715, longitude: -122.2730 }, // Tech Institute
+    destinationCoords: { latitude: 37.5107, longitude: -122.2951 }, // Regional Airport
   },
 ];
 

@@ -26,6 +26,7 @@ import { colors } from '@/constants/colors';
 import Button from '@/components/Button';
 import { useAuthStore } from '@/store/auth-store';
 import { RideType } from '@/types';
+import Toast from 'react-native-toast-message';
 
 export default function CreateRideScreen() {
   const router = useRouter();
@@ -75,6 +76,10 @@ export default function CreateRideScreen() {
   };
   
   const handleCreateRide = () => {
+    if (!user || user.verificationStatus !== 'approved') {
+      Toast.show({ type: 'error', text1: 'You must be a verified student to offer a ride.' });
+      return;
+    }
     if (!origin || !destination || !price || !seats) {
       Alert.alert('Error', 'Please fill in all required fields');
       return;

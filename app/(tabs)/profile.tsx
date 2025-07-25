@@ -1,15 +1,35 @@
-import React from 'react';
-import { StyleSheet, Text, View, Image, ScrollView, TouchableOpacity, Alert } from 'react-native';
+import React, { useState } from 'react';
+import { StyleSheet, Text, View, Image, ScrollView, TouchableOpacity, Alert, Modal, TextInput } from 'react-native';
 import { useRouter } from 'expo-router';
 import { LogOut, Settings, Star, Shield, CreditCard, HelpCircle, Bell } from 'lucide-react-native';
 import { colors } from '@/constants/colors';
 import { useAuthStore } from '@/store/auth-store';
 import Button from '@/components/Button';
+import * as Linking from 'expo-linking';
+import Toast from 'react-native-toast-message';
+import { trpcClient } from '@/lib/trpc';
+import * as ImagePicker from 'expo-image-picker';
 
 export default function ProfileScreen() {
   const router = useRouter();
   const { user, isAuthenticated, logout } = useAuthStore();
-  
+  const [editModalVisible, setEditModalVisible] = useState(false);
+  const [editName, setEditName] = useState(user?.name || '');
+  const [editEmail, setEditEmail] = useState(user?.email || '');
+  const [editUniversity, setEditUniversity] = useState(user?.university || '');
+  // Mock ratings data
+  const myRatingsGiven = [
+    { id: '1', to: 'Maya Patel', value: 5, comment: 'Great passenger!' },
+    { id: '2', to: 'Carlos Rodriguez', value: 4, comment: 'On time and friendly.' },
+  ];
+  const myRatingsReceived = [
+    { id: '3', from: 'Zoe Chen', value: 5, comment: 'Excellent driver!' },
+    { id: '4', from: 'James Wilson', value: 4, comment: 'Smooth ride.' },
+  ];
+  const [verificationStatus, setVerificationStatus] = useState<'pending' | 'approved' | 'rejected' | 'none'>('none');
+  const [idImage, setIdImage] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
+
   const handleLogin = () => {
     router.push('/auth/login');
   };
@@ -32,6 +52,48 @@ export default function ProfileScreen() {
         },
       ]
     );
+  };
+
+  const handleOnboardDriver = async () => {
+    try {
+      const res = await trpcClient.payments.onboardDriver.mutate({ driverId: user?.id || 'unknown' });
+      if (res.url) {
+        Linking.openURL(res.url);
+      } else {
+        Toast.show({ type: 'error', text1: 'Failed to get onboarding link' });
+      }
+    } catch (err) {
+      Toast.show({ type: 'error', text1: 'Stripe onboarding failed' });
+    }
+  };
+
+  const handlePickIdImage = async () => {
+    const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ImagePicker.MediaTypeOptions.Images, quality: 0.7 });
+    if (!result.canceled && result.assets && result.assets.length > 0) {
+      setIdImage(result.assets[0].uri);
+    }
+  };
+
+  const handleUploadId = async () => {
+    if (!idImage) return;
+    setUploading(true);
+    try {
+      // Call backend to upload ID image
+      const res = await trpcClient.verification.upload.mutate({
+        userId: user?.id || 'unknown',
+        idImage,
+      });
+      const validStatuses = ['pending', 'approved', 'rejected', 'none'] as const;
+      if (res.status && validStatuses.includes(res.status as any)) {
+        setVerificationStatus(res.status as typeof verificationStatus);
+      } else {
+        setVerificationStatus('pending');
+      }
+      Toast.show({ type: 'success', text1: 'ID uploaded for verification' });
+    } catch (err) {
+      Toast.show({ type: 'error', text1: 'Upload failed' });
+    }
+    setUploading(false);
   };
   
   if (!isAuthenticated) {
@@ -72,11 +134,11 @@ export default function ProfileScreen() {
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Account</Text>
         
-        <TouchableOpacity style={styles.menuItem} activeOpacity={0.7}>
+        <TouchableOpacity style={styles.menuItem} activeOpacity={0.7} onPress={() => setEditModalVisible(true)}>
           <View style={styles.menuIconContainer}>
             <Settings size={20} color={colors.primary} />
           </View>
-          <Text style={styles.menuText}>Account Settings</Text>
+          <Text style={styles.menuText}>Edit Profile</Text>
         </TouchableOpacity>
         
         <TouchableOpacity style={styles.menuItem} activeOpacity={0.7}>
@@ -91,7 +153,7 @@ export default function ProfileScreen() {
           )}
         </TouchableOpacity>
         
-        <TouchableOpacity style={styles.menuItem} activeOpacity={0.7}>
+        <TouchableOpacity style={styles.menuItem} activeOpacity={0.7} onPress={() => router.push('/payment-methods')}>
           <View style={styles.menuIconContainer}>
             <CreditCard size={20} color={colors.primary} />
           </View>
@@ -121,6 +183,28 @@ export default function ProfileScreen() {
         </TouchableOpacity>
       </View>
       
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>My Ratings</Text>
+        <Text style={{ fontWeight: '600', marginLeft: 16, marginTop: 4 }}>Given</Text>
+        {myRatingsGiven.map(rating => (
+          <View key={rating.id} style={{ flexDirection: 'row', alignItems: 'center', marginLeft: 32, marginBottom: 4 }}>
+            <Star size={16} color={colors.secondary} fill={colors.secondary} />
+            <Text style={{ marginLeft: 8, fontWeight: '500' }}>{rating.value}</Text>
+            <Text style={{ marginLeft: 8, color: colors.gray[600] }}>to {rating.to}</Text>
+            <Text style={{ marginLeft: 8, color: colors.gray[500], fontStyle: 'italic' }}>{rating.comment}</Text>
+          </View>
+        ))}
+        <Text style={{ fontWeight: '600', marginLeft: 16, marginTop: 8 }}>Received</Text>
+        {myRatingsReceived.map(rating => (
+          <View key={rating.id} style={{ flexDirection: 'row', alignItems: 'center', marginLeft: 32, marginBottom: 4 }}>
+            <Star size={16} color={colors.secondary} fill={colors.secondary} />
+            <Text style={{ marginLeft: 8, fontWeight: '500' }}>{rating.value}</Text>
+            <Text style={{ marginLeft: 8, color: colors.gray[600] }}>from {rating.from}</Text>
+            <Text style={{ marginLeft: 8, color: colors.gray[500], fontStyle: 'italic' }}>{rating.comment}</Text>
+          </View>
+        ))}
+      </View>
+      
       <Button
         title="Logout"
         variant="outline"
@@ -128,8 +212,80 @@ export default function ProfileScreen() {
         onPress={handleLogout}
         style={styles.logoutButton}
       />
+
+      <Button
+        title="Become a Driver"
+        onPress={handleOnboardDriver}
+        style={{ marginHorizontal: 16, marginTop: 16 }}
+      />
       
       <Text style={styles.versionText}>SmartRides v1.0.0</Text>
+
+      <Modal
+        visible={editModalVisible}
+        animationType="slide"
+        transparent
+        onRequestClose={() => setEditModalVisible(false)}
+      >
+        <View style={{ flex: 1, backgroundColor: '#00000099', justifyContent: 'center', alignItems: 'center' }}>
+          <View style={{ backgroundColor: colors.background, borderRadius: 16, padding: 24, width: '85%' }}>
+            <Text style={{ fontSize: 18, fontWeight: '600', marginBottom: 16 }}>Edit Profile</Text>
+            <TextInput
+              style={{ borderWidth: 1, borderColor: colors.gray[200], borderRadius: 8, padding: 8, marginBottom: 12 }}
+              value={editName}
+              onChangeText={setEditName}
+              placeholder="Name"
+            />
+            <TextInput
+              style={{ borderWidth: 1, borderColor: colors.gray[200], borderRadius: 8, padding: 8, marginBottom: 12 }}
+              value={editEmail}
+              onChangeText={setEditEmail}
+              placeholder="Email"
+              keyboardType="email-address"
+            />
+            <TextInput
+              style={{ borderWidth: 1, borderColor: colors.gray[200], borderRadius: 8, padding: 8, marginBottom: 20 }}
+              value={editUniversity}
+              onChangeText={setEditUniversity}
+              placeholder="University"
+            />
+            <View style={{ flexDirection: 'row', justifyContent: 'flex-end' }}>
+              <Button title="Cancel" variant="outline" onPress={() => setEditModalVisible(false)} style={{ marginRight: 8 }} />
+              <Button title="Save" onPress={() => { setEditModalVisible(false); /* TODO: Save logic */ }} />
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Student Verification</Text>
+        {verificationStatus === 'approved' ? (
+          <Text style={{ color: colors.success, marginLeft: 16, marginBottom: 8 }}>Verified ✅</Text>
+        ) : verificationStatus === 'pending' ? (
+          <Text style={{ color: colors.primary, marginLeft: 16, marginBottom: 8 }}>Pending approval...</Text>
+        ) : verificationStatus === 'rejected' ? (
+          <Text style={{ color: colors.error, marginLeft: 16, marginBottom: 8 }}>Rejected. Please re-upload.</Text>
+        ) : null}
+        <View style={{ flexDirection: 'row', alignItems: 'center', marginLeft: 16, marginBottom: 8 }}>
+          <Button
+            title={idImage ? 'Change ID Photo' : 'Upload Student ID'}
+            onPress={handlePickIdImage}
+            style={{ marginRight: 12, minWidth: 160 }}
+            variant="outline"
+          />
+          {idImage && (
+            <Button
+              title={uploading ? 'Uploading...' : 'Submit for Verification'}
+              onPress={handleUploadId}
+              disabled={uploading}
+              style={{ minWidth: 180 }}
+            />
+          )}
+        </View>
+        {idImage && (
+          <Image source={{ uri: idImage }} style={{ width: 180, height: 120, borderRadius: 8, marginLeft: 16, marginBottom: 8 }} />
+        )}
+      </View>
     </ScrollView>
   );
 }

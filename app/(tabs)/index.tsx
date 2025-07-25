@@ -10,6 +10,7 @@ import RideCard from '@/components/RideCard';
 import Button from '@/components/Button';
 import TopPicksCarousel from '@/components/TopPicksCarousel';
 import { RideCardSkeleton } from '@/components/SkeletonLoader';
+import Toast from 'react-native-toast-message';
 
 export default function HomeScreen() {
   const router = useRouter();
@@ -18,7 +19,13 @@ export default function HomeScreen() {
   const [refreshing, setRefreshing] = useState<boolean>(false);
   
   useEffect(() => {
-    fetchRides();
+    fetchRides().catch(() => {
+      Toast.show({
+        type: 'error',
+        text1: 'Failed to fetch rides',
+        text2: 'Please check your connection and try again.',
+      });
+    });
   }, [fetchRides]);
   
   const onRefresh = async () => {
@@ -183,8 +190,19 @@ export default function HomeScreen() {
           <RideCardSkeleton />
           <RideCardSkeleton />
         </View>
-      ) : (
+      ) : topPickRides.length > 0 ? (
         <TopPicksCarousel rides={topPickRides} onSeeAll={handleFindRides} />
+      ) : (
+        <View style={styles.emptyStateContainer}>
+          <Users size={48} color={colors.gray[300]} />
+          <Text style={styles.emptyStateText}>No popular rides yet</Text>
+          <Button
+            title="Find a ride"
+            onPress={handleFindRides}
+            style={styles.findRideButton}
+            leftIcon={<Search size={16} color={colors.background} />}
+          />
+        </View>
       )}
       
       <View style={styles.upcomingContainer}>

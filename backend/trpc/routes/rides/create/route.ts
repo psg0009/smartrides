@@ -1,34 +1,38 @@
 import { z } from "zod";
-import { publicProcedure } from "../../../create-context";
+import { protectedProcedure } from "../../../create-context";
+import { prisma } from "../../../../prisma";
 
-const createRideSchema = z.object({
-  origin: z.string().min(1, "Origin is required"),
-  destination: z.string().min(1, "Destination is required"),
-  departureTime: z.string().datetime(),
-  price: z.number().positive("Price must be positive"),
-  availableSeats: z.number().int().min(1).max(8),
-  rideType: z.enum(["carpool", "chauffeur"]),
-  description: z.string().optional(),
-  driverId: z.string(),
-});
-
-export default publicProcedure
-  .input(createRideSchema)
+export default protectedProcedure
+  .input(z.object({
+    type: z.enum(["carpool", "chauffeur"]),
+    driverId: z.string(),
+    passengers: z.string(),
+    origin: z.string(),
+    destination: z.string(),
+    departureTime: z.string(),
+    arrivalTime: z.string(),
+    price: z.string(),
+    availableSeats: z.string(),
+    status: z.enum(["scheduled", "in-progress", "completed", "cancelled"]),
+    distance: z.string(),
+    duration: z.string(),
+  }))
   .mutation(async ({ input }) => {
-    // In a real app, you would save this to a database
-    const ride = {
-      id: `ride-${Date.now()}`,
-      ...input,
-      createdAt: new Date().toISOString(),
-      status: "active" as const,
-      bookedSeats: 0,
-    };
-    
-    console.log("Creating ride:", ride);
-    
-    return {
-      success: true,
-      ride,
-      message: "Ride created successfully",
-    };
+    const ride = await prisma.ride.create({
+      data: {
+        type: input.type,
+        driverId: input.driverId,
+        passengers: parseInt(input.passengers, 10),
+        origin: input.origin,
+        destination: input.destination,
+        departureTime: new Date(input.departureTime),
+        arrivalTime: new Date(input.arrivalTime),
+        price: parseFloat(input.price),
+        availableSeats: parseInt(input.availableSeats, 10),
+        status: input.status,
+        distance: input.distance,
+        duration: input.duration,
+      },
+    });
+    return { success: true, ride };
   });
