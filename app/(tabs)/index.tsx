@@ -1,22 +1,31 @@
-import React, { useEffect } from 'react';
-import { StyleSheet, Text, View, ScrollView, TouchableOpacity } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { StyleSheet, Text, View, ScrollView, TouchableOpacity, RefreshControl } from 'react-native';
 import { useRouter } from 'expo-router';
-import { Car, MapPin, Calendar, Users, Star, TrendingUp, Search, Plus, CreditCard } from 'lucide-react-native';
+import { Car, MapPin, Calendar, Users, Search, Plus, CreditCard, ArrowRight } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { colors } from '@/constants/colors';
 import { useRidesStore } from '@/store/rides-store';
 import { useAuthStore } from '@/store/auth-store';
 import RideCard from '@/components/RideCard';
 import Button from '@/components/Button';
+import TopPicksCarousel from '@/components/TopPicksCarousel';
+import { RideCardSkeleton } from '@/components/SkeletonLoader';
 
 export default function HomeScreen() {
   const router = useRouter();
   const { user, isAuthenticated } = useAuthStore();
-  const { rides, fetchRides } = useRidesStore();
+  const { rides, fetchRides, isLoading } = useRidesStore();
+  const [refreshing, setRefreshing] = useState<boolean>(false);
   
   useEffect(() => {
     fetchRides();
   }, [fetchRides]);
+  
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await fetchRides();
+    setRefreshing(false);
+  };
   
   const upcomingRides = rides.slice(0, 3);
   const topPickRides = rides.filter(ride => ride.driver.rating >= 4.8).slice(0, 2);
@@ -29,20 +38,48 @@ export default function HomeScreen() {
     router.push('/rides');
   };
   
-  const handleBookChauffeur = () => {
-    router.push('/rides?type=chauffeur');
-  };
+
   
   const handleCreateRide = () => {
-    router.push('/create-ride');
+    if (!isAuthenticated) {
+      router.push('/auth/login');
+      return;
+    }
+    router.push('/(tabs)/create-ride');
   };
   
   const handlePaymentMethods = () => {
+    if (!isAuthenticated) {
+      router.push('/auth/login');
+      return;
+    }
     router.push('/payment-methods');
   };
   
+  const handleBookSolo = () => {
+    if (!isAuthenticated) {
+      router.push('/auth/login');
+      return;
+    }
+    router.push('/book/solo');
+  };
+  
+  const handleBookGroup = () => {
+    if (!isAuthenticated) {
+      router.push('/auth/login');
+      return;
+    }
+    router.push('/book/group');
+  };
+  
   return (
-    <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+    <ScrollView 
+      style={styles.container} 
+      showsVerticalScrollIndicator={false}
+      refreshControl={
+        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+      }
+    >
       <View style={styles.header}>
         <LinearGradient
           colors={['rgba(53, 99, 233, 0.8)', 'rgba(53, 99, 233, 0.6)']}
@@ -111,80 +148,71 @@ export default function HomeScreen() {
         <View style={styles.servicesGrid}>
           <TouchableOpacity 
             style={styles.serviceCard}
-            onPress={handleFindRides}
+            onPress={handleBookGroup}
             activeOpacity={0.7}
           >
             <View style={[styles.serviceIconContainer, styles.carpoolIcon]}>
               <Users size={24} color={colors.primary} />
             </View>
-            <Text style={styles.serviceTitle}>Carpooling</Text>
+            <Text style={styles.serviceTitle}>Group Ride</Text>
             <Text style={styles.serviceDescription}>
               Share rides with other students and split costs
             </Text>
+            <ArrowRight size={16} color={colors.gray[400]} style={styles.serviceArrow} />
           </TouchableOpacity>
           
           <TouchableOpacity 
             style={styles.serviceCard}
-            onPress={handleBookChauffeur}
+            onPress={handleBookSolo}
             activeOpacity={0.7}
           >
             <View style={[styles.serviceIconContainer, styles.chauffeurIcon]}>
               <Car size={24} color={colors.secondary} />
             </View>
-            <Text style={styles.serviceTitle}>Chauffeur</Text>
+            <Text style={styles.serviceTitle}>Solo Ride</Text>
             <Text style={styles.serviceDescription}>
               Book a private driver for your airport transfer
             </Text>
+            <ArrowRight size={16} color={colors.gray[400]} style={styles.serviceArrow} />
           </TouchableOpacity>
         </View>
       </View>
       
-      <View style={styles.topPicksContainer}>
-        <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Top Picks</Text>
-          <TouchableOpacity onPress={handleFindRides}>
-            <Text style={styles.seeAllText}>See all</Text>
-          </TouchableOpacity>
+      {isLoading ? (
+        <View style={styles.loadingContainer}>
+          <RideCardSkeleton />
+          <RideCardSkeleton />
         </View>
-        
-        {topPickRides.length > 0 ? (
-          topPickRides.map(ride => (
-            <View key={ride.id} style={styles.topPickCard}>
-              <RideCard ride={ride} />
-              <View style={styles.topPickBadge}>
-                <Star size={12} color={colors.background} fill={colors.background} />
-                <Text style={styles.topPickBadgeText}>Top Rated</Text>
-              </View>
-            </View>
-          ))
-        ) : (
-          <View style={styles.emptyStateContainer}>
-            <TrendingUp size={48} color={colors.gray[300]} />
-            <Text style={styles.emptyStateText}>No top picks available</Text>
-          </View>
-        )}
-      </View>
+      ) : (
+        <TopPicksCarousel rides={topPickRides} onSeeAll={handleFindRides} />
+      )}
       
       <View style={styles.upcomingContainer}>
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Upcoming Rides</Text>
-          <TouchableOpacity onPress={handleFindRides}>
+          <Text style={styles.sectionTitle}>Recent Rides</Text>
+          <TouchableOpacity onPress={() => router.push('/(tabs)/rides')}>
             <Text style={styles.seeAllText}>See all</Text>
           </TouchableOpacity>
         </View>
         
-        {upcomingRides.length > 0 ? (
+        {isLoading ? (
+          <View>
+            <RideCardSkeleton />
+            <RideCardSkeleton />
+          </View>
+        ) : upcomingRides.length > 0 ? (
           upcomingRides.map(ride => (
             <RideCard key={ride.id} ride={ride} />
           ))
         ) : (
           <View style={styles.emptyStateContainer}>
             <Calendar size={48} color={colors.gray[300]} />
-            <Text style={styles.emptyStateText}>No upcoming rides</Text>
+            <Text style={styles.emptyStateText}>No recent rides</Text>
             <Button 
               title="Find a ride" 
-              onPress={handleFindRides}
+              onPress={() => router.push('/(tabs)/rides')}
               style={styles.findRideButton}
+              leftIcon={<Search size={16} color={colors.background} />}
             />
           </View>
         )}
@@ -326,10 +354,16 @@ const styles = StyleSheet.create({
   },
   serviceCard: {
     width: '48%',
-    backgroundColor: colors.gray[50],
-    borderRadius: 16,
-    padding: 16,
+    backgroundColor: colors.background,
+    borderRadius: 20,
+    padding: 20,
     alignItems: 'center',
+    shadowColor: colors.gray[900],
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
+    elevation: 3,
+    position: 'relative',
   },
   serviceIconContainer: {
     width: 56,
@@ -353,9 +387,18 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   serviceDescription: {
-    fontSize: 12,
+    fontSize: 13,
     color: colors.gray[600],
     textAlign: 'center',
+    lineHeight: 18,
+  },
+  serviceArrow: {
+    position: 'absolute',
+    top: 16,
+    right: 16,
+  },
+  loadingContainer: {
+    marginTop: 24,
   },
   topPicksContainer: {
     marginTop: 24,
