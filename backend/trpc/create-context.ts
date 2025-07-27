@@ -6,11 +6,12 @@ import jwt from "jsonwebtoken";
 const JWT_SECRET = process.env.JWT_SECRET || 'your_jwt_secret';
 
 // Define user type
-interface UserPayload {
+export interface UserPayload {
   id: string;
   email: string;
   name: string;
   role: string;
+  avatar?: string;
 }
 
 // Context creation function
