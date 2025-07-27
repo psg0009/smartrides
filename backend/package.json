@@ -15,8 +15,7 @@
     "db:push": "prisma db push --schema=../prisma/schema.prisma",
     "db:generate": "prisma generate --schema=../prisma/schema.prisma",
     "db:studio": "prisma studio --schema=../prisma/schema.prisma",
-    "db:reset": "prisma db push --force-reset --schema=../prisma/schema.prisma",
-    "postinstall": "prisma generate --schema=../prisma/schema.prisma"
+    "db:reset": "prisma db push --force-reset --schema=../prisma/schema.prisma"
   },
   "dependencies": {
     "@hono/trpc-server": "^0.3.4",

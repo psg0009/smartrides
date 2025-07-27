@@ -21,6 +21,9 @@ COPY . .
 # Build backend
 RUN cd backend && npm run build
 
+# Generate Prisma client in the backend directory
+RUN cd backend && npx prisma generate --schema=../prisma/schema.prisma
+
 # Expose port
 EXPOSE 3000
 
