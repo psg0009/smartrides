@@ -2,8 +2,12 @@
 builder = "nixpacks"
 
 [build.steps]
-install = "npm install"
+install = "npm ci --only=production"
 build = "npm run build:backend"
+
+[build.environment]
+NPM_CONFIG_PACKAGE_MANAGER = "npm"
+NODE_ENV = "production"
 
 [deploy]
 startCommand = "npm run start:backend"

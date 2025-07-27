@@ -1,0 +1,13 @@
+# Ignore bun lock files
+bun.lock
+bun.lockb
+
+# Ignore bun configuration
+bunfig.toml
+
+# Ignore other package manager files
+yarn.lock
+pnpm-lock.yaml
+
+# Keep only npm files
+package-lock.json 
