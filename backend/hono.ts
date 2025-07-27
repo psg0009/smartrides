@@ -37,21 +37,4 @@ app.get("/health", (c) => {
 
 app.route('/payments/webhook', stripeWebhookHandler);
 
-// Add server startup for Railway
-const port = process.env.PORT || 3000;
-
-if (require.main === module) {
-  console.log(`🚀 Server starting on port ${port}...`);
-  
-  // Simple HTTP server setup
-  const { createServer } = require('http');
-  const server = createServer((req: any, res: any) => {
-    app.fetch(req, res);
-  });
-  
-  server.listen(port, () => {
-    console.log(`✅ Server running on http://localhost:${port}`);
-  });
-}
-
 export default app;
