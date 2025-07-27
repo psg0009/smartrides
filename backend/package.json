@@ -5,7 +5,7 @@
   "main": "hono.ts",
   "scripts": {
     "dev": "tsx watch hono.ts",
-    "start": "tsx server.ts",
+    "start": "node dist/server.js",
     "build": "tsc",
     "test": "jest",
     "test:watch": "jest --watch",
