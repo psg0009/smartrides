@@ -34,8 +34,17 @@ export const getLogs = adminProcedure.query(async () => {
   return [];
 });
 
+export const exportLogs = adminProcedure.query(async () => {
+  // Scaffold: return CSV format of logs
+  const headers = 'Timestamp,User ID,Action,Details\n';
+  const logs: string[] = []; // TODO: Fetch from ComplianceLog table
+  
+  return headers + logs.join('\n');
+});
+
 export default {
   listUsers,
   resendVerification,
   getLogs,
+  exportLogs,
 }; 
