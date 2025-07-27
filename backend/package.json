@@ -5,7 +5,7 @@
   "main": "hono.ts",
   "scripts": {
     "dev": "tsx watch hono.ts",
-    "start": "tsx hono.ts",
+    "start": "tsx server.ts",
     "build": "tsc",
     "test": "jest",
     "test:watch": "jest --watch",
@@ -15,8 +15,7 @@
     "db:push": "prisma db push --schema=../prisma/schema.prisma",
     "db:generate": "prisma generate --schema=../prisma/schema.prisma",
     "db:studio": "prisma studio --schema=../prisma/schema.prisma",
-    "db:reset": "prisma db push --force-reset --schema=../prisma/schema.prisma",
-    "postinstall": "prisma generate --schema=../prisma/schema.prisma"
+    "db:reset": "prisma db push --force-reset --schema=../prisma/schema.prisma"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.850.0",

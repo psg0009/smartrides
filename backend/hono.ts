@@ -30,7 +30,7 @@ app.get("/", (c) => {
   return c.json({ status: "ok", message: "API is running" });
 });
 
-// Health check endpoint for Railway
+// Health check endpoint for Railway (accessible at /api/health)
 app.get("/health", (c) => {
   return c.json({ status: "ok", message: "API is healthy" });
 });

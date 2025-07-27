@@ -23,7 +23,6 @@ RUN cd backend && npm run build
 
 # Generate Prisma client in the backend directory
 RUN cd backend && npx prisma generate --schema=../prisma/schema.prisma
-RUN ls -la backend/node_modules/@prisma/client || echo "Prisma client not found in expected location"
 
 # Expose port
 EXPOSE 3000

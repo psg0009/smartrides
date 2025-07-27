@@ -12,7 +12,7 @@ NODE_ENV = "production"
 
 [deploy]
 startCommand = "npm run start:backend"
-healthcheckPath = "/api/health"
+healthcheckPath = "/api"
 healthcheckTimeout = 300
 restartPolicyType = "on_failure"
 
