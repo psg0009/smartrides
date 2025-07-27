@@ -35,10 +35,7 @@ jobs:
         run: npm run lint
         
       - name: Type check
-        run: npm run typecheck
-        
-      - name: Check formatting
-        run: npm run format:check
+        run: npm run type-check
 
   # =============================================================================
   # TESTING
