@@ -136,7 +136,7 @@ export const shareRide = protectedProcedure
     }
 
     const isDriver = ride.driverId === userId;
-    const isPassenger = ride.bookings.some(booking => booking.userId === userId);
+    const isPassenger = ride.bookings.some((booking: { userId: string }) => booking.userId === userId);
 
     if (!isDriver && !isPassenger) {
       throw new Error('Not authorized to share this ride');
@@ -189,7 +189,7 @@ export const sendSafetyAlert = protectedProcedure
     }
 
     const isDriver = ride.driverId === userId;
-    const isPassenger = ride.bookings.some(booking => booking.userId === userId);
+    const isPassenger = ride.bookings.some((booking: { userId: string }) => booking.userId === userId);
 
     if (!isDriver && !isPassenger) {
       throw new Error('Not authorized to send safety alert for this ride');

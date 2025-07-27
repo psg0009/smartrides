@@ -83,7 +83,7 @@ export const getRideLocation = protectedProcedure
     }
 
     const isDriver = ride.driverId === userId;
-    const isPassenger = ride.bookings.some(booking => booking.userId === userId);
+    const isPassenger = ride.bookings.some((booking: { userId: string }) => booking.userId === userId);
 
     if (!isDriver && !isPassenger) {
       throw new Error('Not authorized to view this ride location');
@@ -143,7 +143,7 @@ export const updateRideStatus = protectedProcedure
     rideStatusUpdates.set(input.rideId, statusUpdate);
 
     // TODO: Send notifications to all passengers
-    // const passengerIds = ride.bookings.map(booking => booking.userId);
+    // const passengerIds = ride.bookings.map((booking: { userId: string }) => booking.userId);
     // await notificationService.sendRideUpdateNotification(
     //   input.rideId,
     //   input.status,
@@ -187,7 +187,7 @@ export const getRideStatusHistory = protectedProcedure
     }
 
     const isDriver = ride.driverId === userId;
-    const isPassenger = ride.bookings.some(booking => booking.userId === userId);
+    const isPassenger = ride.bookings.some((booking: { userId: string }) => booking.userId === userId);
 
     if (!isDriver && !isPassenger) {
       throw new Error('Not authorized to view this ride status');
@@ -289,7 +289,7 @@ export const getEstimatedArrival = protectedProcedure
     }
 
     const isDriver = ride.driverId === userId;
-    const isPassenger = ride.bookings.some(booking => booking.userId === userId);
+    const isPassenger = ride.bookings.some((booking: { userId: string }) => booking.userId === userId);
 
     if (!isDriver && !isPassenger) {
       throw new Error('Not authorized to view this ride information');

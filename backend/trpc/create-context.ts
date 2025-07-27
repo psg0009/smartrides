@@ -5,16 +5,26 @@ import jwt from "jsonwebtoken";
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your_jwt_secret';
 
+// Define user type
+interface UserPayload {
+  id: string;
+  email: string;
+  name: string;
+  role: string;
+}
+
 // Context creation function
 export const createContext = async (opts: FetchCreateContextFnOptions) => {
-  let user = null;
+  let user: UserPayload | null = null;
   const authHeader = opts.req.headers.get('authorization');
   if (authHeader && authHeader.startsWith('Bearer ')) {
     const token = authHeader.slice(7);
     try {
       const decoded = jwt.verify(token, JWT_SECRET);
-      // You may want to validate/shape this further
-      user = decoded;
+      // Type guard to ensure decoded is an object with role property
+      if (typeof decoded === 'object' && decoded !== null && 'role' in decoded) {
+        user = decoded as UserPayload;
+      }
     } catch (err) {
       user = null;
     }
