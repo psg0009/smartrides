@@ -4,7 +4,7 @@ builder = "nixpacks"
 [build.steps]
 install = "npm ci --only=production --legacy-peer-deps"
 build = "npm run build:backend"
-generate = "npx prisma generate"
+generate = "cd backend && npx prisma generate --schema=../prisma/schema.prisma"
 
 [build.environment]
 NPM_CONFIG_PACKAGE_MANAGER = "npm"
@@ -12,7 +12,7 @@ NODE_ENV = "production"
 
 [deploy]
 startCommand = "npm run start:backend"
-healthcheckPath = "/health"
+healthcheckPath = "/api/health"
 healthcheckTimeout = 300
 restartPolicyType = "on_failure"
 
