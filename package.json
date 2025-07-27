@@ -25,7 +25,10 @@
     "test:setup": "node scripts/test-setup.js",
     "lint": "eslint . --ext .ts,.tsx",
     "lint:fix": "eslint . --ext .ts,.tsx --fix",
-    "type-check": "tsc --noEmit"
+    "type-check": "tsc --noEmit",
+    "validate-env": "node scripts/validate-env.js",
+    "validate-env:prod": "NODE_ENV=production node scripts/validate-env.js",
+    "setup:prod": "node scripts/setup-production.js"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.850.0",
