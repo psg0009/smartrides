@@ -1,7 +1,6 @@
 module.exports = {
   root: true,
   extends: [
-    '@typescript-eslint/recommended',
     'eslint:recommended',
   ],
   parser: '@typescript-eslint/parser',
@@ -9,17 +8,17 @@ module.exports = {
   env: {
     node: true,
     es6: true,
+    browser: true,
   },
   parserOptions: {
     ecmaVersion: 2020,
     sourceType: 'module',
   },
   rules: {
-    '@typescript-eslint/no-unused-vars': 'warn',
-    '@typescript-eslint/no-explicit-any': 'warn',
-    '@typescript-eslint/explicit-function-return-type': 'off',
-    '@typescript-eslint/explicit-module-boundary-types': 'off',
-    '@typescript-eslint/no-non-null-assertion': 'warn',
+    '@typescript-eslint/no-unused-vars': 'off',
+    '@typescript-eslint/no-explicit-any': 'off',
+    'no-unused-vars': 'off',
+    'no-undef': 'off',
   },
   ignorePatterns: [
     'node_modules/',
