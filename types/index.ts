@@ -11,7 +11,7 @@ export type User = {
 
 export type RideType = 'carpool' | 'chauffeur';
 
-export type RideStatus = 'scheduled' | 'in-progress' | 'completed' | 'cancelled';
+export type RideStatus = 'scheduled' | 'in_progress' | 'completed' | 'cancelled';
 
 export type Ride = {
   id: string;

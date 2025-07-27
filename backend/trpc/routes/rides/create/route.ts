@@ -13,7 +13,7 @@ export default protectedProcedure
     arrivalTime: z.string(),
     price: z.string(),
     availableSeats: z.string(),
-    status: z.enum(["scheduled", "in-progress", "completed", "cancelled"]),
+    status: z.enum(["scheduled", "in_progress", "completed", "cancelled"]),
     distance: z.string(),
     duration: z.string(),
   }))
