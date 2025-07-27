@@ -23,6 +23,7 @@
     "test:backend": "cd backend && npm test",
     "test:frontend": "expo test",
     "test:setup": "node scripts/test-setup.js",
+    "validate-env": "node scripts/validate-env.js",
     "lint": "eslint . --ext .ts,.tsx",
     "lint:fix": "eslint . --ext .ts,.tsx --fix",
     "type-check": "tsc --noEmit"
