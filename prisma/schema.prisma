@@ -180,6 +180,7 @@ enum PaymentStatus {
 model ComplianceLog {
   id        String   @id @default(uuid())
   userId    String?
+  user      User?    @relation(fields: [userId], references: [id])
   action    String
   details   String?
   timestamp DateTime @default(now())
