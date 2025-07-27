@@ -5,7 +5,7 @@
   "main": "hono.ts",
   "scripts": {
     "dev": "tsx watch hono.ts",
-    "start": "tsx hono.ts",
+    "start": "tsx server.ts",
     "build": "tsc",
     "test": "jest",
     "test:watch": "jest --watch",
@@ -19,6 +19,7 @@
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.850.0",
+    "@hono/node-server": "^1.8.2",
     "@hono/trpc-server": "^0.3.4",
     "@prisma/client": "^6.12.0",
     "@trpc/server": "^11.0.0",
