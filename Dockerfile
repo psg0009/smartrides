@@ -8,11 +8,14 @@ WORKDIR /app
 COPY package*.json ./
 COPY backend/package*.json ./backend/
 
+# Copy Prisma schema (needed for postinstall scripts)
+COPY prisma ./prisma/
+
 # Install dependencies
 RUN npm install --legacy-peer-deps
 RUN cd backend && npm install --legacy-peer-deps
 
-# Copy source code
+# Copy remaining source code
 COPY . .
 
 # Build backend
