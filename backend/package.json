@@ -20,7 +20,10 @@
   "dependencies": {
     "@hono/trpc-server": "^0.3.4",
     "@prisma/client": "^6.12.0",
+    "@trpc/server": "^11.0.0",
     "bcryptjs": "^3.0.2",
+    "bullmq": "^5.56.7",
+    "dotenv": "^16.4.5",
     "hono": "^4.7.11",
     "jsonwebtoken": "^9.0.2",
     "stripe": "^18.3.0",
