@@ -1,6 +1,9 @@
 [build]
 builder = "nixpacks"
-buildCommand = "npm install && npm run build:backend"
+
+[build.steps]
+install = "npm install"
+build = "npm run build:backend"
 
 [deploy]
 startCommand = "npm run start:backend"
@@ -9,4 +12,5 @@ healthcheckTimeout = 300
 restartPolicyType = "on_failure"
 
 [deploy.envs]
-NODE_ENV = "production" 
+NODE_ENV = "production"
+NPM_CONFIG_PACKAGE_MANAGER = "npm" 
