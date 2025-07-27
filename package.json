@@ -11,6 +11,8 @@
     "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
     "build": "expo build",
     "build:web": "expo build --web",
+    "build:backend": "cd backend && npm run build",
+    "start:backend": "cd backend && npm start",
     "setup": "node scripts/setup.js",
     "db:push": "npx prisma db push",
     "db:generate": "npx prisma generate",
