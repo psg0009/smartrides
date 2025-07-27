@@ -21,6 +21,8 @@ model User {
   verified          Boolean  @default(false)
   verificationStatus VerificationStatus @default(none)
   stripeAccountId   String?
+  stripeCustomerId  String?
+  pushToken         String?
   role              UserRole @default(student)
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
@@ -30,6 +32,10 @@ model User {
   rides             Ride[]        @relation("UserRides")
   verifications     Verification[]
   complianceLogs    ComplianceLog[]
+  chatParticipants  ChatRoomParticipant[]
+  chatMessages      ChatMessage[]
+  notifications     Notification[]
+  emergencyContacts EmergencyContact[]
 }
 
 enum UserRole {
@@ -125,6 +131,9 @@ model Ride {
   distance    String
   duration    String
   bookings    Booking[]
+  chatRooms   ChatRoom[]
+  rideLocation RideLocation?
+  rideShares  RideShare[]
   createdAt   DateTime @default(now())
 }
 
@@ -174,4 +183,81 @@ model ComplianceLog {
   action    String
   details   String?
   timestamp DateTime @default(now())
+}
+
+model ChatRoom {
+  id        String   @id @default(uuid())
+  rideId    String
+  ride      Ride     @relation(fields: [rideId], references: [id])
+  participants ChatRoomParticipant[]
+  messages  ChatMessage[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model ChatRoomParticipant {
+  id         String   @id @default(uuid())
+  chatRoomId String
+  userId     String
+  chatRoom   ChatRoom @relation(fields: [chatRoomId], references: [id])
+  user       User     @relation(fields: [userId], references: [id])
+  joinedAt   DateTime @default(now())
+  lastReadAt DateTime @default(now())
+
+  @@unique([chatRoomId, userId])
+}
+
+model ChatMessage {
+  id          String   @id @default(uuid())
+  chatRoomId  String
+  senderId    String
+  content     String
+  messageType String   @default("text") // text, image, location
+  read        Boolean  @default(false)
+  chatRoom    ChatRoom @relation(fields: [chatRoomId], references: [id])
+  sender      User     @relation(fields: [senderId], references: [id])
+  createdAt   DateTime @default(now())
+}
+
+model RideLocation {
+  id        String   @id @default(uuid())
+  rideId    String   @unique
+  ride      Ride     @relation(fields: [rideId], references: [id])
+  latitude  Float
+  longitude Float
+  updatedAt DateTime @default(now())
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  type      String   // ride_update, booking_confirmed, payment_received, etc.
+  title     String
+  message   String
+  data      Json?    // Additional data for the notification
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
+model EmergencyContact {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  name      String
+  phone     String
+  email     String?
+  relationship String
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+}
+
+model RideShare {
+  id        String   @id @default(uuid())
+  rideId    String
+  ride      Ride     @relation(fields: [rideId], references: [id])
+  sharedWith String  // User ID or email
+  shareType String   // location, status, both
+  expiresAt DateTime
+  createdAt DateTime @default(now())
 } 

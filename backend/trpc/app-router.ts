@@ -19,6 +19,10 @@ import { getOfferById } from './routes/requests/respond';
 import authRoutes from './routes/auth';
 import adminRoutes from './routes/admin';
 import s3Routes from './routes/s3';
+import chatRoutes from './routes/chat';
+import rideTrackingRoutes from './routes/ride-tracking';
+import safetyRoutes from './routes/safety';
+import notificationRoutes from './routes/notifications';
 
 export const appRouter = createTRPCRouter({
   example: createTRPCRouter({
@@ -57,6 +61,10 @@ export const appRouter = createTRPCRouter({
   s3: s3Routes,
   auth: authRoutes,
   admin: adminRoutes,
+  chat: chatRoutes,
+  rideTracking: rideTrackingRoutes,
+  safety: safetyRoutes,
+  notifications: notificationRoutes,
 });
 
 export type AppRouter = typeof appRouter;
