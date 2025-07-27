@@ -25,6 +25,8 @@
     "test:backend": "cd backend && npm test",
     "test:frontend": "expo test",
     "test:setup": "node scripts/test-setup.js",
+    "validate-env": "node scripts/validate-env.js",
+    "test-db": "node scripts/test-db-connection.js",
     "lint": "eslint . --ext .ts,.tsx",
     "lint:fix": "eslint . --ext .ts,.tsx --fix",
     "type-check": "echo 'Type check skipped for CI/CD'",
