@@ -4,6 +4,7 @@ builder = "nixpacks"
 [build.steps]
 install = "npm ci --only=production --legacy-peer-deps"
 build = "npm run build:backend"
+generate = "npx prisma generate"
 
 [build.environment]
 NPM_CONFIG_PACKAGE_MANAGER = "npm"

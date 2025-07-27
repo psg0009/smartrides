@@ -13,6 +13,7 @@
     "build:web": "expo build --web",
     "build:backend": "cd backend && npm run build",
     "start:backend": "cd backend && npm start",
+    "postinstall": "npx prisma generate",
     "setup": "node scripts/setup.js",
     "db:push": "npx prisma db push",
     "db:generate": "npx prisma generate",
